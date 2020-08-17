@@ -35,11 +35,11 @@ For the Locomotion System to work, you only need the files in the folder `Assets
 
 ## Documentation
 
-For information on how to use the Locomotion System, [see the documentation](Assets/Locomotion System Files/Documentation/Documentation.html).
+For information on how to use the Locomotion System, [see the documentation](Assets/Locomotion%20System%20Files/Documentation/Documentation.html).
 
 
 ## License
 
 All code files in this project are Copyright (c) 2008-2020, Rune Skovbo Johansen. They are licensed according to the [Mozilla Public License Version 2.0](LICENSE).
 
-Non-code asset files are Copyright (c) 2008, Rune Skovbo Johansen & Unity Technologies ApS. They are licensed according to the [TUTORIAL ASSETS LICENSE AGREEMENT](TUTORIAL ASSETS LICENSE AGREEMENT.rtf).
+Non-code asset files are Copyright (c) 2008, Rune Skovbo Johansen & Unity Technologies ApS. They are licensed according to the [TUTORIAL ASSETS LICENSE AGREEMENT](TUTORIAL%20ASSETS%20LICENSE%20AGREEMENT.rtf).
