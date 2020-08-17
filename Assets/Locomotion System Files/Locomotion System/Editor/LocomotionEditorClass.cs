@@ -1,7 +1,7 @@
 /*
-Copyright (c) 2008, Rune Skovbo Johansen & Unity Technologies ApS
+Copyright (c) 2008-2020, Rune Skovbo Johansen
 
-See the document "TERMS OF USE" included in the project folder for licencing details.
+See the document "LICENSE" included in the project folder for licencing details.
 */
 using UnityEditor;
 using UnityEngine;
