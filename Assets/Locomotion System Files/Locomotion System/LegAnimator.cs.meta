@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d4554e3e21b924fff92ce3229aa36237
+timeCreated: 1519247712
+licenseType: Pro
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - vertexColorMaterial: {fileID: 2100000, guid: c769f975fc36441898bc9d416e9211b4,
+      type: 2}
+  - ghost: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

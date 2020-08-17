@@ -1,0 +1,384 @@
+<html>
+<head>
+<style>
+h1, h2, h3 { font-family:sans-serif; }
+tt {  border-bottom:1px solid #999; }
+li { margin-top:10pt; }
+.info { background-color:#eef7ff; border-color:#666; border-width:1px; border-style:solid; padding:5pt; }
+pre { background-color:#fff7ee; border-color:#666; border-width:1px; border-style:solid; padding:5pt; }
+</style>
+</head>
+<body>
+<div style="width:50em;">
+
+<p><b>Version 1.0.3 - for Unity 2019.4 or higher</b></p>
+
+<h1>Locomotion System</h1>
+
+<p><i>Grounding your walking and running animations, in any direction, on any terrain.</i></p>
+
+<p>By <i>Rune Skovbo Johansen</i>
+<br><a href="http://runevision.com" target="_new">runevision.com</a>
+<br>In collaboration with <i>Unity Technologies ApS</i>
+<br><a href="http://unity3d.com" target="_new">unity3d.com</a></p>
+
+
+<h2>Introduction</h2>
+
+<p>The Locomotion System for Unity automatically blends your keyframed or motion-captured walk and run cycles and then adjusts the movements of the bones in the legs to ensure that the feet step correctly on the ground. The system can adjust animations made for a specific speed and direction on a plain surface to any speed, direction, and curvature, on any surface, including arbitrary steps and slopes.</p>
+
+<p>The Locomotion System can be used with characters with a skinned skeleton and some animations. The character must have at least one leg, and each leg must have at least two segments. The character must also have at least one idle animation (it can be just one frame) and at least one walk or run cycle animation.</p>
+
+<p>The Locomotion System does not enforce any high level control scheme but rather lets you move your character around by any means you desire. The Locomotion System silently observes the position, alignment, velocity and rotational velocity of your character and deduces everything from that, along with some raycasts onto the ground.</p>
+
+<p>This flexibility means that you can use a <tt>Character Controller</tt>, a <tt>Rigid Body</tt>, or something else entirely to move your character around in the world, exactly as you would normally do.</p>
+
+<p>The Locomotion System is <b><i>not</i></b>:</p>
+
+<ul>
+<li><i>A physics-based system or active animated ragdoll system.</i>
+<br>The system has no integration with the physics simulation. It is purely kinematic, though it does base the kinematics on some raycasts onto the geometry of the ground.
+<li><i>A behavior-based system.</i>
+<br>The system cannot make the character react instinctively to external forces such as being punched, tripping and falling, or being shot. The system only blends and slightly adjusts your existing animations.
+<li><i>A unified system that can be used for all animation of a character.</i>
+<br>The system only controls the legs. (The whole body is typically implicitly controlled since the system blends together multiple full body animations. However, this can be overridden by the user with specific animations for the upper body, using the usual means available in Unity.)
+</ul>
+
+<p class="info"> For the Locomotion System to work, you only need the files in the folder <tt>Assets / Locomotion System Files / Locomotion System</tt>. All other files are not directly part of the Locomotion System and do not have to be included in your project. However, the Quick Start Guide below uses additional files from the project folder.</p>
+
+<p>This document contains the following sections:</p>
+
+<ul>
+<li><b>Quick Start Guide</b>
+<li><b>Additional Features</b>
+<li><b>Reference</b>
+<li><b>Terms of Use</b>
+</ul>
+
+<h2>Quick Start Guide</h2>
+
+<p>This Quick Start Guide contain the following parts:</p>
+
+<ul>
+<li><b>The Basic Scene Setup</b>
+<br>Here we set up a scene for the character. We also add the character and some scripts to let us move him around with the arrow keys (or a gamepad).
+<li><b>Setting Up The Locomotion System</b>
+<br>Now we set up the Locomotion System and actually get it to work.
+<li><b>Adding Running</b>
+<br>We add a run cycle animation to the Locomotion System so that the character can both walk and run.
+<li><b>Using More Animations</b>
+<br>Here we add animations for strafing left and right and going backwards, to enhance realism.
+</ul>
+
+
+<h3>The Basic Scene Setup</h3>
+
+<p>For this Quick Start Guide it is assumed that you use the included <tt>Hero</tt> character.</p>
+
+<ul><li>Place the <tt>Hero</tt> model in the scene. The hero model is located at <tt>Assets > Characters > Hero Artwork > Hero</tt>. Set position to (0, 0, 0).</ul>
+
+<p class="info">You can use any means to move the character around. In this Quick Start Quide we will use a standard <tt>Character Controller</tt> component to handle collisions and a few script components to handle input and movements.</p>
+
+<ul><li>Place a floor with a collider under your character. You can use the menu <tt>GameObject > 3D Object > Plane</tt>. Set position to (0, 0, 0).</ul>
+
+<ul><li>Add a <tt>Character Controller</tt> component to the character to handle collisions. Adjust the values to fit. For example: Center Y 0.88, Radius 0.2, Height 1.6.</ul>
+<ul><li>Add a <tt>Normal Character Motor</tt> script to the character to handle movements.</ul>
+<ul><li>Add a <tt>Platform Character Controller</tt> script to the character to handle input.</ul>
+
+<p>(Note that none of these are part of the Locomotion System. You may use your own solutions instead.)</p>
+
+<ul><li>Make sure that the <tt>Character Controller</tt> fits the character such that the feet are neither intersecting the floor, nor hovering over it. Test it in Play mode.
+<br><img src="images/character_controller.png">
+</ul>
+
+<ul><li>Press the Play button. You should now be able to use the arrow keys to move the <tt>Hero</tt> character around, though he isn't properly animated yet.</ul>
+
+
+<h3>Setting Up The Locomotion System</h3>
+
+<p>Let's begin to setup the Locomotion System.</p>
+
+<ul><li>To begin with, the character should just have an <tt>Animation</tt> component (if your character doesn't have one, there is something wrong). Uncheck the option <tt>Play Automatically</tt>.</ul>
+
+<ul><li>Add a <tt>Leg Controller</tt> script component to the character (located at <tt>Assets > Locomotion System > LegController</tt>). It must be on the same game object that has the <tt>Animation</tt> component.</ul>
+
+<ul><li>Set the <tt>Ground Plane Height</tt> on the <tt>Leg Controller</tt> component. A green gizmo cross should appear at the level of the character's feet. For the <tt>Hero</tt> character the ground plane height is 0.
+<br><img src="images/ground_plane_height.png">
+</ul>
+
+<p class="info">Note that the height is measured in units <i>prior</i> to applying the transform of the character. This is to make sure you can use a different position, rotation, and scale of your character later without having to change the <tt>Leg Controller</tt> variables accordingly.</p>
+
+<ul><li>Drag the character's idle animation onto the variable called <tt>Grounded Pose</tt>. A quick way to get to the animations in the Project pane is to click on the animation clip in the <tt>Animation</tt> variable of the <tt>Animation</tt> component. For the <tt>Hero</tt> character the idle animation is called <tt><tt>Idle1</tt></tt>.</ul>
+
+<ul><li>The Root Bone should be the bone that is the root of the animated hierarchy. By default it will be set to the parent bone of the hip bone in the first leg, if you don't set it yourself.</ul>
+
+<ul><li>Expand the <tt>Legs</tt> section on the <tt>Leg Controller</tt> component. This section should hold setup data for all the legs.</ul>
+
+<ul><li>Click the <tt>Add Leg</tt> button. Expand the newly created <tt>Leg 1</tt> property to see its settings, and then do the following:
+<ul>
+   <img src="images/leg_properties.png">
+   <li>Find the hip bone (upper leg bone) in the skeleton hierarchy of the character for the given leg and drag it to the variable called <tt>Hip</tt>. For the <tt>Hero</tt> character it is <tt>Hero > Reference > Hips > LeftUpLeg</tt> (for the left leg).
+   <li>Find the ankle bone (foot bone) and drag it to the variable called <tt>Ankle</tt>. For the <tt>Hero</tt> character it is <tt>Hero > Reference > Hips > LeftUpLeg > LeftLeg > LeftFoot</tt> (for the left leg).
+   <p class="info">Note that the <tt>Ankle</tt> variable should really hold whatever bone controls the rotation of the foot. For humans that will be the ankle, but for some animals the ankle is placed quite high up on the leg, and the bone directly controlling the foot (or paw or hoof) should be used instead.</p>
+   <li>If the character has a toe bone (or even toe tip bone) then drag it onto the <tt>Toe</tt> variable. Otherwise just use the lowest available bone in the leg and drag it onto the <tt>Toe</tt> variable, even if it is just the ankle bone (foot bone) again.
+   <li>Set the Foot <tt>Width</tt>, <tt>Length</tt>, and <tt>Offsets</tt>. A green gizmo rectangle should be drawn around the foot which you can use to verify that the dimensions and offset are correct. Again those measurements are in units <i>prior</i> to scaling.
+   <br><img src="images/feet_dimensions.png">
+</ul>
+</ul>
+
+<ul><li>When satisfied with the first leg, click the <tt>Add Leg</tt> button to add leg properties for the remaining legs of the character as well. The remaining legs have now copied the Foot <tt>Width</tt>, <tt>Length</tt>, and <tt>Offsets</tt> data from the first leg, so you may not need to set those again if the other feet are similar to the first one.
+<ul>
+   <li>You must still set the correct <tt>Hip</tt>, <tt>Ankle</tt> and <tt>Toe</tt> transforms for each leg though. Do it the same way you did it for the first leg.
+</ul>
+</ul>
+
+<ul><li>Expand the <tt>Source Animations</tt> section on the <tt>Leg Controller</tt> component.</ul>
+
+<div class="info"><p>The <tt>Source Animations</tt> section in the <tt>Leg Controller</tt> component should contain all animations that the Locomotion System should handle. This normally includes:</p>
+<ul>
+   <li>All walking and running animations.
+   <li>All animations where the character is standing on the ground.
+   <li><i>Not</i> animations where the character is jumping or otherwise airborn.
+   <li><i>Not</i> animations only applied to the upper body (so they don't affect the legs).
+</ul>
+</div>
+
+<p>In this Quick Start Guide we will first test the Locomotion System with just a few animations to get started quick and see how that looks. Then we will add more animations and see how that improves the way the character moves.</p>
+
+<ul><li>If you are using the <tt>Hero</tt> character in this Quick Start Guide, proceed as follow:
+<ul>
+   <li>Under the group <tt>Not Used</tt>, select the <tt>Idle1</tt> and the <tt>WalkForward</tt> animations using the checkboxes to the right of them.
+   <li>Use the <tt>Move Selected To</tt> dropdown and select <tt>New Group</tt>.
+   <li>The animations are moved to a new group called <tt>MotionGroup1</tt>. Let's rename it to <tt>locomotion</tt>.
+   <br><img src="images/source_animations.png">
+   <li>Change the <tt>Motion Type</tt> of the <tt>Idle1</tt> animation from <tt>WalkCycle</tt> to <tt>Grounded</tt>.
+   <li>Expand the settings of the <tt>WalkForward</tt> animation and enable <tt>Also Use Backwards</tt>.
+   <li>Click the <tt>Initialize</tt> button.
+</ul>
+</ul>
+
+<ul><li>Add a <tt>Leg Animator</tt> script component to the character (located at <tt>Assets > Locomotion System > LegAnimator</tt>).
+
+<ul><li>Set the <tt>Layer</tt> of the character to <tt>Player</tt>. This is not required by the system, but you need to make sure in any case that the variable <tt>Ground Layers</tt> in the <tt>Leg Animator</tt> component does not include the character itself. This is so that the raycasts used by the Locomotion System don't hit the collider of the character itself.</ul>
+
+</ul>
+
+<ul><li>Press the Play button. Use the arrow keys to move the <tt>Hero</tt> character around. The motion doesn't look quite right (though it may improve if you hold down <tt>Shift</tt>). Will get back to this a bit further down.</ul>
+
+<p>You can now make the environment a bit more interesting by adding tilted surfaces, small and big crates and steps, etc. Two values are important for determining how big steps up the character can take: The <tt>Step Offset</tt> value in the <tt>Character Controller</tt> component and the <tt>Max Step Height</tt> value in the <tt>Leg Animator</tt> component.</p>
+
+<img src="images/crate_pose.png">
+
+<p>If you want to be able to let the character not only walk forward but also for example strafe sideways or walk backwards, you can add an <tt>Aim Look Character Controller</tt> script (located at <tt>Assets > Character Controller Scripts > AimLookCharacterController</tt>). Note again that this is not part of the Locomotion System itself, and you can also control the walking direction in your own scripts simply by controlling the movement and rotation of the character. The <tt>Aim Look Character Controller</tt> requires that you define two new axes called <tt>Horizontal2</tt> and <tt>Vertical2</tt> in the input settings. Use the menu <tt>Edit > Project Settings > Input</tt>. You can for example let the old axes be controlled by the arrow keys only and new axes be controlled by A, D and S, W.</p>
+
+
+<h3>Adding Running</h3>
+
+<p>We currently have the character walking around using just one idle animation and one walk cycle animation. The walk doesn't look completely realistic. This is (mostly) because the character actually moves around faster that what would be the native speed that matches the walk cycle we use.</p>
+
+<ul><li>In the <tt>Leg Controller</tt> component, expand the <tt>Source Animations</tt> section and expand the WalkForward animation settings. Notice that the expanded settings have a read-only variable called <tt>Native Speed</tt>.<img src="images/native_speed.png"></ul>
+
+<p class="info">The <tt>Native Speed</tt> variable is the speed that matches a given walk cycle best.</p>
+
+<p>The <tt>Native Speed</tt> is around 0.7 for the <tt>WalkForward</tt> animation of the <tt>Hero</tt> character. This means that it must move around with a speed of 0.7 to match the animation perfectly.</p>
+
+<ul><li>In the <tt>Normal Character Motor</tt> script component set the <tt>Max Forward Speed</tt> to 0.7, and the same for the other speeds.</ul>
+
+<ul><li>Press the Play button. The movements now look much more realistic, but they're also very slow!</ul>
+
+<p class="info">Always make sure that the animations you make actually match how fast you want the character to move around in the game. The Locomotion System determines the native speed of walk and run cycles by analyzing how fast the feet are moving when they are closest to the ground. In animations of high quality, the feet are moving with a constant speed while they're supposed to be on the ground. This is because for a given walk or run cycle the ground should be moving with a constant speed relative to the character.</p>
+
+<ul><li>Let's get the character moving faster! Expand the <tt>Not Used</tt> list,  select the animation clip called <tt>RunForward</tt> and move it to the motion group we created earlier called <tt>locomotion</tt>. You can enable "Also Use Backwards" for the <tt>RunForward</tt> animaton as well. 
+</ul>
+
+<ul><li>Click the <tt>Initialize</tt> button.</ul>
+
+<ul><li>Look at the <tt>Native Speed</tt> of the <tt>RunForward</tt> animation and set the speeds of the <tt>Normal Character Motor</tt> component to that value.</ul>
+
+<ul><li>Press the Play button. The character can now run. (Well it's not really a proper run but that's because the animation is like that. At least it's faster than the walk.)</ul>
+
+<p>Notice how if you run in one direction and change fast to run in the opposite direction, the character actually runs sideways for a moment, while turning around. This is because the direction the character moves in changes faster than the direction the character is facing in. While the <tt>Normal Character Motor</tt> is responsible for this behavior, it is the Locomotion System that makes it look good. This is a thing the Locomotion System handles well and which can improve the realism of walking and running a lot. In real life, persons don't turn around fully before moving in a new direction!</p>
+
+<p>If a gamepad is used, such as an Xbox 360 controller, the speed of walking/running can be controlled with the analog stick. If only a keyboard is available, slower walking can be achieved by pressing <i>shift</i>. This is a function of the <tt>Platform Character Controller</tt> script that was added to the character to handle input.  Since the native speed of the <tt>WalkForward</tt> animation is about 25% of the native speed of the <tt>RunForward</tt> animation, try to set the <tt>Walk Multiplier</tt> value of the <tt>Platform Character Controller</tt> to 0.25.</p>
+
+
+<h3>Using More Animations</h3>
+
+<p>So far we have gotten by with just three animations. To make the movements look more realistic when walking and running sideways and backwards, you can add some more animations when available. (You can skip this section if you want.)</p>
+
+<ul><li>In the <tt>Source Animations</tt> section in the <tt>Leg Controller</tt> component, disable the <tt>Also Use Backwards</tt> option for the <tt>WalkForward</tt> and <tt>RunForward</tt> animations.</ul>
+<ul><li>Expand the <tt>Not Used</tt> list and select the following animation clips:
+<ul>
+   <li><tt>WalkBackward</tt>
+   <li><tt>RunBackward</tt>
+   <li><tt>WalkStrafeLeft</tt>
+   <li><tt>RunStrafeLeft</tt>
+   <li><tt>WalkStrafeRight</tt>
+   <li><tt>RunStrafeRight</tt>
+</ul>
+</ul>
+
+<ul><li>Move the selected clips to the <tt>locomotion</tt> motion group we created earlier.</ul>
+
+<ul><li>Then click the <tt>Initialize</tt> button. Then press Play.</ul>
+
+<p>The character now walks and runs with great realism in all directions.</p>
+
+<p>The system generally takes care of automatically blending the right animations with the right weights. When no backwards animations are available, the <tt>Also Use Backwards</tt> option should generally always be enabled for the forward animations, even if the character is never intended to walk backwards. The system will then use the forward animation played backwards as if it was an extra animation and this improves the blending for all directions. A strafe left animation can also double as a strafe right when <tt>Also Use Backwards</tt> is enabled etc.</p>
+
+<p>This concludes the Quick Start Guide. The next section is not written as a tutorial but goes in details with additional features of the Locomotion System that are useful for integrating the system in your game and improving the realism further.</p>
+
+
+<h2>Additional Features</h2>
+
+<p>This section contain the following parts:</p>
+
+<ul>
+<li><b>Blending and Cross Fading</b>
+<br>This part is about how to interface with the Locomotion System from your own scripts. An example script is described which can be used to control waiting and jumping animations.
+<li><b>Leaning</b>
+<br>Enhance the realism further by making characters lean when walking on steep surfaces and when accelerating.
+<li><b>Ground Hugging for Non-Bipeds</b>
+<br>Creatures with more than two legs support their weight differently than humans and other bipeds. The Locomotion System has two simple settings to handle that.
+</ul>
+
+
+<h3>Blending and Cross Fading</h3>
+
+<p>So far the Locomotion System has been in control all of the time for just walking and running. In this section we will take a closer look at how to blend and cross fade between different animations so that the character can do more than just standing, walking, and running.</p>
+
+<p class="info">The Locomotion System uses a concept of motion groups. A motion group is a group of animations that can be controlled as a whole. A motion group can have one or more animations of type <tt>Walk Cycle</tt> and optionally one animation of type <tt>Grounded</tt>. A motion group should not contain two animations with the same velocity. This is also why they should have at most one grounded animation, since grounded animations always have zero velocity.</p>
+
+<p>Motion groups can be used to specify groups of animations with the same style. For example, you might have one group including a normal idle, walk, and run animation, and another group including a sneaky idle and walk animation. It can then be controlled from scripts which motion group is in effect, while the weights of the individual animations within motions groups are controlled automatically by the Locomotion System.</p>
+
+<p>In the previous sections we set up all the animations in the Locomotion System with the motion group name "<tt>locomotion</tt>". The name "<tt>locomotion</tt>" is just an example. It can be any name.</p>
+
+<p>In your own scripts the Locomotion System can be blended in and out by using a motion group name as an animation name, for example:</p>
+
+<pre>
+animation.CrossFade("locomotion",0.5f);
+</pre>
+
+<p>This will fade the Locomotion System in over half a second. It will also automatically be faded out if other animations are cross faded in, just the same way as it works with other animations. You can also set the weight directly the same way as for other animations:</p>
+
+<pre>
+animation["locomotion"].weight = 0.8f;
+</pre>
+
+<p>Blending, crossfading, and weights generally work the same as for other animations. However, the Locomotion System is not compatible with the functions <tt>CrossFadeQueued</tt> and <tt>PlayQueued</tt>. Those functions can still be used on animations that only affect the upper body, but they should not be used with animations controlled by the Locomotion System. Also note that the individual animations in a motion group should not be handled manually; the Locomotion System will take care of those exclusively.</p>
+
+<p>Animations that are not in motion groups come in two flavors: Those that are handled by the Locomotion System and those that are not.</p>
+<ul><li>To add an animation to the Locomotion System that should not be in a motion group, just select it and move it to <tt>Ungrouped</tt> using the <tt>Move Selected To</tt> dropdown. You can now set the weight of that animation the same way you would normally do, and the feet will be standing correctly on the ground.</ul>
+<ul><li>To use an animation that is not handled by the Locomotion System (i.e. that is under the <tt>Not Used</tt> list), simply use it the same way you normally would. When such animations are used, the effects of the Locomotion System are blended down so that the legs are no longer adjusted to stand on the ground. This is useful for example for jumping animations.</ul>
+
+<p>The script <tt>JumpAndIdle.cs</tt> shows how to fade to a jumping animation while jumping and how to fade to an extended idle animation while inactive for a little while. Try it out:</p>
+
+<ul><li>Select the animation <tt>Idle2</tt> in the <tt>Not Used</tt> list and move it to <tt>Ungrouped</tt>.</ul>
+
+<ul><li>Remember to click the <tt>Initialize</tt> button.</ul>
+
+<ul><li>Add a <tt>Jump And Idle</tt> script component to the character <tt>Assets > Character Controller Scripts > JumpAndIdle</tt>.
+<ul>
+   <li>Drag the animation clip <tt>AimIdle</tt> to the variable called <tt>Jumping Animation</tt>.
+   <li>Drag the animation clip <tt>Idle1</tt> to the variable called <tt>Idle Animation</tt>.
+   <li>Drag the animation clip <tt>Idle2</tt> to the variable called <tt>Waiting Animation</tt>.
+</ul>
+</ul>
+
+<p>The <tt>Hero</tt> character unfortunately doesn't have a proper jumping animation so the <tt>AimIdle</tt> animation will have to do for the sake of demonstration.</p>
+
+<ul><li>Press Play.</ul>
+
+<p>Try to jump by pressing <tt>Space</tt>. (This requires that the input settings have an input named Jump that is mapped to the space key.) Try to stand still for a little while and watch the character scratch his head.</p>
+
+
+<h3>Leaning</h3>
+
+<p>When accelerating, a character will often lean in order to avoid falling over. This includes leaning slightly forward when transitioning from standing to walking, or leaning sideways when running in a sharp curve.</p>
+
+<p>The Locomotion System does not support using specific animations for accelerating. However, the Locomotion System has settings to enable procedural leaning based on acceleration.</p>
+
+<ul>
+<li>In the <tt>Leg Animator</tt> component, the settings <tt>Accelerate Tilt Amount</tt> and <tt>Accelerate Tilt Sensitivity</tt> control the leaning based on acceleration. The tilt amount is a simple multiplier; the default value is 0.02 but it has no effect if the sensitivity is zero. The tilt sensitivity is sensitive to <i>speed</i>. A high value will make the character lean maximally even at low speeds while lower values will only lean the character when there is significant speed. A good starting point for the value is 10 divided by the maximum speed the character will be moving with.
+<br><img src="images/acceleration_tilt.png">
+</ul>
+
+<p>In the real world, leaning occurs not only when accelerating, but also when walking up or down slopes or steps (this assumes a character with two legs). The Locomotion System has two settings to control leaning based on climbing slopes and steps.</p>
+
+<ul>
+<li>In the <tt>Leg Animator</tt> component, the settings <tt>Climb Tilt Amount</tt> and <tt>Climb Tilt Sensitivity</tt> control the leaning based on acceleration. The tilt amount is a simple multiplier; the default value is 0.5 but it has no effect if the sensitivity is zero. The climb tilt sensitivity is sensitive to <i>speed</i> just like the acceleration tilt sensitivity described above.
+<br><img src="images/climb_tilt.png">
+</ul>
+
+
+<h3>Ground Hugging for Non-Bipeds</h3>
+
+<p>Creatures with more than two legs support their weight differently than humans and other bipeds. Typically the creature aligns its body along the ground. The Locomotion System has two simple settings to handle that. In the <tt>Leg Animator</tt> component, the settings <tt>Ground Hug X</tt> and <tt>Ground Hug Z</tt> aligns the local X and Z axis of the body with the ground, respectively. For both of them, a value of 0 means no alignment while 1 means full alignment. Typically either 0 or 1 is used for each axis, but values in between can be used too.</p>
+
+<ul>
+<li>Humans, birds, and other creatures with two legs typically should have <tt>Ground Hug X</tt>: 0 and <tt>Ground Hug Z</tt>: 0. This means that the body is not rotated with the ground.
+<li>Dogs, cats, horses, and other creatures with four legs should typically use <tt>Ground Hug X</tt>: 0 and <tt>Ground Hug Z</tt>: 1. This mean that the front-to-back (for example head-to-tail) axis of the creature is aligned with the ground, while the sideways axis is left untouched. (This assumes that the creature is aligned along its local Z axis.)
+<br><img src="images/ground_hugging.png">
+<li>Spiders, bugs, crabs, and other creatures that are either rather flat or has almost no weight should use <tt>Ground Hug X</tt>: 1 and <tt>Ground Hug Z</tt>: 1. This aligns the body completely with the ground in both axes.
+</ul>
+
+<p>The ground hugging feature works together with the leaning (tilting) feature described in the previous part. By design, leaning will only affect axes that are not fully ground hugged. For example, a dog with <tt>Ground Hug X</tt>: 0 and <tt>Ground Hug Z</tt>: 1 can lean sideways (along its local X axis) when running in a sharp turn, but will never lean forward or backwards (along its local Z axis).</p>
+
+
+<h2>Reference</h2>
+
+<p>The documentation above covers most features of the Locomotion System. Below is a reference of all the parameters in the LegAnimator component.</p>
+
+<ul>
+
+<li><tt>Start Automatically</tt> : Use the Locomotion System from the beginning when the scene loads or the character is instantiated. This will set the weight of the first motion group to 1 upon start.</li>
+
+<li><tt>Use IK</tt> : Use inverse kinematics to make the legs adjust to the ground. Disable this if you only want to use the Locomotion System for the automatic animation blending it offers.</li>
+
+<li><tt>Max Foot Rotation Angle</tt> : The maximum angle (in degrees) the inverse kinematics will turn the foot in order to avoid foot sliding.</li>
+
+<li><tt>Max IKAdjustment Distance</tt> : The maximum distance (in units) the inverse kinematics will move the foot in order to avoid foot sliding. If you experience the legs getting into unnatural looking poses, you can decrease this value to restrict how much the Locomotion System can change the pose of the legs. Low values may cause foot sliding though, so this is a trade-off.</li>
+
+<li><tt>Min Step Distance</tt> : Prevent the character from taking steps smaller than this distance (in units).</li>
+
+<li><tt>Max Step Duration</tt> : Prevent the character from taking steps that take longer than this (in seconds).</li>
+
+<li><tt>Max Step Rotation</tt> : The maximum rotation the character can do without taking a step. Setting this higher will make the character take fewer steps when rotating fast.</li>
+
+<li><tt>Max Step Acceleration</tt> : The maximum amount the character can accelerate without taking a step.</li>
+
+<li><tt>Max Step Height</tt> : The character will not attempt to take steps higher than this. Artifacts may happen if the character is forced over higher steps than this.</li>
+
+<li><tt>Max Slope Angle</tt> : The character will try to avoid to take steps on slopes steeper than this.</li>
+
+<li><tt>Enable Leg Parking</tt> : This will let the character stand still when coming to a stop rather than keeping moving the legs.</li>
+
+<li><tt>Blend Smoothing</tt> : How much smoothing to apply when blending into different animations. For example, when you apply motion to the character the Locomotion System will blend from e.g. idle to walk with the blending amount specified. Note that making the velocity change gradually will cause some smoothing of the blending on it's own, but the Blend Smoothing parameter can be used to smooth the transition further.</li>
+
+<li><tt>Ground Layers</tt> : The layers the system will raycast against to find out where to step on.</li>
+
+<li><tt>Ground Hug X</tt> : Aligns the local X axis of the body with the ground. 0 means no alignment while 1 means full alignment. Animals that are more flat than tall, such as spiders or crabs, should typically have both Ground Hug X and Z set to 1.</li>
+
+<li><tt>Ground Hug Z</tt> : Aligns the local X axis of the body with the ground. 0 means no alignment while 1 means full alignment. Animals that are more long than tall, such as most four-legged animals, should typically have Ground Hug X set to 0 and Ground Hug Z set to 1.</li>
+
+<li><tt>Climb Tilt Amount</tt> : How much the character should tilt when going up or down steps or slopes.</li>
+
+<li><tt>Climb Tilt Sensitivity</tt> : How sensitive the character tilting is to the steepness of the steps or slopes. Higher sensitivity will make the character tilt at less steepness.</li>
+
+<li><tt>Accelerate Tilt Amount</tt> : How much the character should tilt when accelerating or turning.</li>
+
+<li><tt>Accelerate Tilt Sensitivity</tt> : How sensitive the character tilting is to acceleration. Higher sensitivity will make the character tilt at less acceleration or turning.</li>
+
+<li><tt>Render Foot Markers</tt> : Used for debugging and visualization. Shows the previous and next footstep position for each foot.</li>
+
+<li><tt>Render Blending Graph</tt> : Used for debugging and visualization. Shows a graph on the character that shows which animations are used with which blending weights. The positions of dots signify animations with different velocities. If there is more than one motion group, the different motions groups are color coded.</li>
+
+<li><tt>Render Cycle Markers</tt> : Used for debugging and visualization. Shows a graph in the corner of the game view that shows the cyclic timing of all the feet.</li>
+
+<li><tt>Render Animation States</tt> : Used for debugging and visualization. Shows a list with all the animation states so it's easy to see which ones are active and at which blending weight.</li>
+
+</ul>
+
+</div>
+</body>
+</html>
