@@ -35,7 +35,7 @@ For the Locomotion System to work, you only need the files in the folder `Assets
 
 ## Documentation
 
-For information on how to use the Locomotion System, [see the documentation](Assets/Locomotion%20System%20Files/Documentation/Documentation.html).
+For information on how to use the Locomotion System, [see the documentation](Assets/Locomotion%20System%20Files/Documentation/documentation.html).
 
 
 ## License
